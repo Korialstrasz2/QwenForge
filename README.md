@@ -32,8 +32,11 @@ Forge is a production-oriented local desktop/web operator console for running Qw
 Run `update_and_install.bat` from the repo root. It will:
 - Create `.venv` and install backend/frontend dependencies.
 - Create `.env` from `.env.example` if missing.
+- Install a vLLM-compatible `setuptools` version and pin `vllm==0.11.0` to avoid long pip resolver backtracking.
 - Prompt to optionally download Qwen 3.6 quantized variants from Unsloth.
 - Prompt to toggle all-local/offline mode defaults in `.env`.
+
+Then run `start_forge.bat` to launch local services (backend + frontend; and dockerized postgres/redis when Docker is available).
 
 ## Local dev commands
 ```bash
