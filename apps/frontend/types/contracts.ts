@@ -2,7 +2,7 @@ export type Job = {
   id: number;
   project_id: number;
   job_type: string;
-  status: "queued" | "running" | "completed" | "failed";
+  status: "queued" | "running" | "completed" | "failed" | "paused" | "cancelled";
   backend: string;
   model_id: string;
 };

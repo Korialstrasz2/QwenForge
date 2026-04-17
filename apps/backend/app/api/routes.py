@@ -11,6 +11,7 @@ from app.inference.adapters import build_adapter
 from app.models.entities import Artifact, Job, ModelProfile, Project
 from app.schemas.contracts import HealthResponse, JobCreate, ModelProfileCreate, ProjectCreate
 from app.services.jobs import create_job
+from app.services.templates import SUPPORTED_JOB_TYPES
 from app.workers.runner import run_job
 
 router = APIRouter()
@@ -21,15 +22,22 @@ async def health() -> HealthResponse:
     return HealthResponse(status="ok", backend="api", queue="dramatiq", timestamp=datetime.utcnow())
 
 
+def _build_adapter_or_400(backend: str):
+    try:
+        return build_adapter(backend)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
 @router.get("/inference/health")
 async def inference_health(backend: str = "vllm"):
-    adapter = build_adapter(backend)
+    adapter = _build_adapter_or_400(backend)
     return await adapter.health()
 
 
 @router.get("/inference/models")
 async def inference_models(backend: str = "vllm"):
-    adapter = build_adapter(backend)
+    adapter = _build_adapter_or_400(backend)
     return {"data": await adapter.list_models()}
 
 
@@ -68,6 +76,16 @@ def enqueue_job(payload: JobCreate, session: Session = Depends(get_session)):
     project = session.get(Project, payload.project_id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
+
+    if payload.job_type not in SUPPORTED_JOB_TYPES:
+        raise HTTPException(status_code=400, detail="Unsupported job type")
+
+    model_profile = session.exec(select(ModelProfile).where(ModelProfile.model_id == payload.model_id)).first()
+    if not model_profile:
+        raise HTTPException(status_code=404, detail="Model profile not found")
+
+    if model_profile.backend != payload.backend:
+        raise HTTPException(status_code=400, detail="Job backend must match selected model profile backend")
 
     job = create_job(
         session,

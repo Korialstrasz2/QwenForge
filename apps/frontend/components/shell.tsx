@@ -86,13 +86,20 @@ export function ForgeShell() {
                 onSubmit={async (e) => {
                   e.preventDefault();
                   const form = new FormData(e.currentTarget);
+                  const selectedModelId = String(form.get("model"));
+                  const modelProfile = (models.data || []).find((model) => model.model_id === selectedModelId);
+
+                  if (!modelProfile) {
+                    throw new Error("Please select a saved model profile.");
+                  }
+
                   await fetchJson("/api/jobs", {
                     method: "POST",
                     body: JSON.stringify({
                       project_id: Number(form.get("project")),
                       job_type: String(form.get("job_type")),
-                      backend: String(form.get("backend")),
-                      model_id: String(form.get("model")),
+                      backend: modelProfile.backend,
+                      model_id: modelProfile.model_id,
                     }),
                   });
                   jobs.refetch();
@@ -107,8 +114,12 @@ export function ForgeShell() {
                     "codebase_analysis","documentation_generation","architecture_summarization","api_map_generation","test_generation","refactor_advisor","bug_hunt","release_notes","repository_onboarding","project_qa","research_document","long_running_agent"
                   ].map((j) => <option key={j} value={j}>{j}</option>)}
                 </select>
-                <input className="rounded-md bg-slate-900 p-2 text-sm" name="backend" defaultValue="vllm" />
-                <input className="rounded-md bg-slate-900 p-2 text-sm" name="model" defaultValue="Qwen/Qwen2.5-Coder-7B-Instruct" />
+                <select name="model" className="rounded-md bg-slate-900 p-2 text-sm" required>
+                  <option value="">Select model profile</option>
+                  {(models.data || []).map((model) => (
+                    <option key={model.id} value={model.model_id}>{model.display_name} ({model.backend})</option>
+                  ))}
+                </select>
                 <button className="rounded-md bg-accent px-3 py-2 text-sm font-medium text-black">Run job</button>
               </form>
             </div>
