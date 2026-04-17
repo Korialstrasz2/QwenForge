@@ -27,6 +27,14 @@ Forge is a production-oriented local desktop/web operator console for running Qw
 3. Open UI: `http://localhost:3000`.
 4. API docs: `http://localhost:8000/docs`.
 
+
+## Windows one-click setup
+Run `update_and_install.bat` from the repo root. It will:
+- Create `.venv` and install backend/frontend dependencies.
+- Create `.env` from `.env.example` if missing.
+- Prompt to optionally download Qwen 3.6 quantized variants from Unsloth.
+- Prompt to toggle all-local/offline mode defaults in `.env`.
+
 ## Local dev commands
 ```bash
 make setup
@@ -46,6 +54,9 @@ make test
 
 ## Environment variables
 See `.env.example`.
+
+- `ALL_LOCAL_MODE=true` blocks non-local inference endpoints so Forge stays local-only.
+- `HF_HUB_OFFLINE=1` and `TRANSFORMERS_OFFLINE=1` enforce offline model cache behavior.
 
 ## Seed/demo mode
 The job worker generates starter artifacts per job type so UI and orchestration are testable immediately, then can be replaced with richer agents.

@@ -1,6 +1,9 @@
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
+
+from app.core.config import get_settings
+from app.core.network_policy import require_local_endpoint
 from sqlmodel import Session, select
 
 from app.db.session import get_session
@@ -46,6 +49,8 @@ def get_projects(session: Session = Depends(get_session)):
 
 @router.post("/models")
 def add_model(payload: ModelProfileCreate, session: Session = Depends(get_session)):
+    settings = get_settings()
+    require_local_endpoint(payload.endpoint, all_local_mode=settings.all_local_mode)
     model = ModelProfile(**payload.model_dump())
     session.add(model)
     session.commit()

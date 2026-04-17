@@ -27,6 +27,7 @@ services:
       DEFAULT_INFERENCE_BACKEND: ${DEFAULT_INFERENCE_BACKEND:-vllm}
       DEFAULT_INFERENCE_BASE_URL: ${DEFAULT_INFERENCE_BASE_URL:-http://host.docker.internal:8001/v1}
       DEFAULT_INFERENCE_API_KEY: ${DEFAULT_INFERENCE_API_KEY:-local-key}
+      ALL_LOCAL_MODE: ${ALL_LOCAL_MODE:-true}
     ports:
       - "${FORGE_API_PORT:-8000}:8000"
     depends_on:
@@ -46,6 +47,7 @@ services:
       DEFAULT_INFERENCE_BACKEND: ${DEFAULT_INFERENCE_BACKEND:-vllm}
       DEFAULT_INFERENCE_BASE_URL: ${DEFAULT_INFERENCE_BASE_URL:-http://host.docker.internal:8001/v1}
       DEFAULT_INFERENCE_API_KEY: ${DEFAULT_INFERENCE_API_KEY:-local-key}
+      ALL_LOCAL_MODE: ${ALL_LOCAL_MODE:-true}
     depends_on:
       - postgres
       - redis

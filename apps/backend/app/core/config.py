@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     default_inference_backend: str = "vllm"
     default_inference_base_url: str = "http://localhost:8001/v1"
     default_inference_api_key: str = "local-key"
+    all_local_mode: bool = True
 
 
 @lru_cache(maxsize=1)
