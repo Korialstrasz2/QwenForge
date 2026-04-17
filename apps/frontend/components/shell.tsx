@@ -116,7 +116,7 @@ export function ForgeShell() {
             <div className="panel p-4">
               <h2 className="mb-3 text-sm font-semibold">Control Panel</h2>
               <div className="space-y-2 text-xs text-slate-300">
-                <ControlLine label="Internet" value="Disabled by default" />
+                <ControlLine label="All-local mode" value="Enabled by default (ALL_LOCAL_MODE)" />
                 <ControlLine label="Shell policy" value="Sandboxed + explicit permission" />
                 <ControlLine label="Write mode" value="Preview diff before apply" />
                 <ControlLine label="Git policy" value="Branch-per-job" />

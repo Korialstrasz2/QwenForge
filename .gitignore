@@ -12,3 +12,5 @@ apps/backend/.venv
 apps/frontend/.turbo
 apps/backend/alembic.ini
 *.log
+
+!.env.example

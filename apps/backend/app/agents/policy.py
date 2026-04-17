@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 
 
 class ToolPolicy(BaseModel):
+    all_local_mode: bool = True
     internet_enabled: bool = False
     shell_allowed: bool = False
     write_requires_preview: bool = True
