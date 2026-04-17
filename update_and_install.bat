@@ -32,9 +32,9 @@ if errorlevel 1 (
   exit /b 1
 )
 
-echo [2/6] Upgrading pip/setuptools/wheel...
-call :log "Running: python -m pip install --upgrade pip setuptools wheel"
-python -m pip install --upgrade pip setuptools wheel >> "%LOG_FILE%" 2>&1 || exit /b 1
+echo [2/6] Upgrading pip/setuptools/wheel (with vLLM-compatible setuptools)...
+call :log "Running: python -m pip install --upgrade pip \"setuptools<80\" wheel"
+python -m pip install --upgrade pip "setuptools<80" wheel >> "%LOG_FILE%" 2>&1 || exit /b 1
 
 echo [3/6] Installing backend dependencies...
 call :log "Installing backend dependencies from apps\\backend"
@@ -43,8 +43,8 @@ python -m pip install -e .[dev] >> "%LOG_FILE%" 2>&1 || exit /b 1
 popd
 
 echo [4/6] Installing model/runtime helper dependencies...
-call :log "Running: python -m pip install \"huggingface_hub[cli]\" unsloth vllm"
-python -m pip install "huggingface_hub[cli]" unsloth vllm >> "%LOG_FILE%" 2>&1 || exit /b 1
+call :log "Running: python -m pip install huggingface_hub unsloth vllm==0.11.0"
+python -m pip install huggingface_hub unsloth vllm==0.11.0 >> "%LOG_FILE%" 2>&1 || exit /b 1
 
 echo [5/6] Installing frontend dependencies...
 where npm >> "%LOG_FILE%" 2>&1
