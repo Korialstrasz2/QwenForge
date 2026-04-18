@@ -99,84 +99,86 @@ if /I "!OFFLINE_CHOICE!"=="Y" (
 )
 
 echo.
+set "DOWNLOAD_MODEL=N"
 if "%SKIP_MODEL_DOWNLOAD%"=="1" (
   echo Skipping model download ^(--skip-model-download^).
   call :log "Skipping model download because --skip-model-download was provided."
 ) else (
   set /p DOWNLOAD_MODEL="Download Qwen 3.6 from Unsloth now? (Y/N): "
+  if "!DOWNLOAD_MODEL!"=="" set "DOWNLOAD_MODEL=N"
   call :log "Download model choice: !DOWNLOAD_MODEL!"
 )
-if "%SKIP_MODEL_DOWNLOAD%"=="0" if /I "!DOWNLOAD_MODEL!"=="Y" (
-  echo Choose model selector:
-  echo   1^) Qwen3.6-35B-A3B (base)
-  echo   2^) Qwen3.6-35B-A3B-Instruct
-  echo   3^) Qwen3.6-35B-A3B-GGUF
-  echo   4^) Custom Hugging Face repo ID
-  set /p MODEL_CHOICE="Enter 1, 2, 3, or 4: "
-  call :log "Model selector choice: !MODEL_CHOICE!"
+if not /I "!DOWNLOAD_MODEL!"=="Y" goto :after_model_download
 
-  if "!MODEL_CHOICE!"=="1" (
-    set MODEL_REPO=unsloth/Qwen3.6-35B-A3B
-    set INCLUDE_ARGS=
-  ) else if "!MODEL_CHOICE!"=="2" (
-    set MODEL_REPO=unsloth/Qwen3.6-35B-A3B-Instruct
-    set INCLUDE_ARGS=
-  ) else if "!MODEL_CHOICE!"=="3" (
-    set MODEL_REPO=unsloth/Qwen3.6-35B-A3B-GGUF
+echo Choose model selector:
+echo   1^) Qwen3.6-35B-A3B (base)
+echo   2^) Qwen3.6-35B-A3B-Instruct
+echo   3^) Qwen3.6-35B-A3B-GGUF
+echo   4^) Custom Hugging Face repo ID
+set /p MODEL_CHOICE="Enter 1, 2, 3, or 4: "
+call :log "Model selector choice: !MODEL_CHOICE!"
+
+if "!MODEL_CHOICE!"=="1" (
+  set MODEL_REPO=unsloth/Qwen3.6-35B-A3B
+  set INCLUDE_ARGS=
+) else if "!MODEL_CHOICE!"=="2" (
+  set MODEL_REPO=unsloth/Qwen3.6-35B-A3B-Instruct
+  set INCLUDE_ARGS=
+) else if "!MODEL_CHOICE!"=="3" (
+  set MODEL_REPO=unsloth/Qwen3.6-35B-A3B-GGUF
+  set /p GGUF_FILTER="GGUF file filter [*Q4_K_M.gguf]: "
+  if "!GGUF_FILTER!"=="" set "GGUF_FILTER=*Q4_K_M.gguf"
+  set "INCLUDE_ARGS=--include !GGUF_FILTER!"
+) else if "!MODEL_CHOICE!"=="4" (
+  set /p MODEL_REPO="Enter repo ID (example: unsloth/Qwen3.6-35B-A3B-GGUF): "
+  if "!MODEL_REPO!"=="" (
+    call :log "Empty custom repo id. Skipping model download."
+    echo Empty repo ID, skipping model download.
+    goto :done
+  )
+  set /p IS_GGUF="Is this a GGUF repo? (Y/N) [N]: "
+  if /I "!IS_GGUF!"=="Y" (
     set /p GGUF_FILTER="GGUF file filter [*Q4_K_M.gguf]: "
     if "!GGUF_FILTER!"=="" set "GGUF_FILTER=*Q4_K_M.gguf"
     set "INCLUDE_ARGS=--include !GGUF_FILTER!"
-  ) else if "!MODEL_CHOICE!"=="4" (
-    set /p MODEL_REPO="Enter repo ID (example: unsloth/Qwen3.6-35B-A3B-GGUF): "
-    if "!MODEL_REPO!"=="" (
-      call :log "Empty custom repo id. Skipping model download."
-      echo Empty repo ID, skipping model download.
-      goto :done
-    )
-    set /p IS_GGUF="Is this a GGUF repo? (Y/N) [N]: "
-    if /I "!IS_GGUF!"=="Y" (
-      set /p GGUF_FILTER="GGUF file filter [*Q4_K_M.gguf]: "
-      if "!GGUF_FILTER!"=="" set "GGUF_FILTER=*Q4_K_M.gguf"
-      set "INCLUDE_ARGS=--include !GGUF_FILTER!"
-    ) else (
-      set INCLUDE_ARGS=
-    )
   ) else (
-    call :log "Invalid model selector: !MODEL_CHOICE!"
-    echo Invalid selection, skipping model download.
-    goto :done
+    set INCLUDE_ARGS=
   )
+) else (
+  call :log "Invalid model selector: !MODEL_CHOICE!"
+  echo Invalid selection, skipping model download.
+  goto :done
+)
 
-  set /p MODEL_DIR="Local target folder for model files [models\qwen3_6_35b_a3b]: "
-  if "!MODEL_DIR!"=="" set MODEL_DIR=models\qwen3_6_35b_a3b
-  call :log "Model target directory: !MODEL_DIR!"
+set /p MODEL_DIR="Local target folder for model files [models\qwen3_6_35b_a3b]: "
+if "!MODEL_DIR!"=="" set MODEL_DIR=models\qwen3_6_35b_a3b
+call :log "Model target directory: !MODEL_DIR!"
 
-  if exist "!MODEL_DIR!" (
-    set /a MODEL_FILE_COUNT=0
-    for /f %%I in ('dir /a-d /b "!MODEL_DIR!" 2^>nul ^| find /c /v ""') do set /a MODEL_FILE_COUNT=%%I
-    if !MODEL_FILE_COUNT! GTR 0 (
-      echo Found !MODEL_FILE_COUNT! existing file^(s^) in !MODEL_DIR!.
-      set /p SKIP_EXISTING_DOWNLOAD="Skip download and keep existing files? (Y/N) [Y]: "
-      if "!SKIP_EXISTING_DOWNLOAD!"=="" set SKIP_EXISTING_DOWNLOAD=Y
-      call :log "Skip existing model download choice: !SKIP_EXISTING_DOWNLOAD! (files found: !MODEL_FILE_COUNT!)"
-      if /I "!SKIP_EXISTING_DOWNLOAD!"=="Y" (
-        call :log "Skipping model download because files already exist."
-        goto :after_model_download
-      )
+if exist "!MODEL_DIR!" (
+  set /a MODEL_FILE_COUNT=0
+  for /f %%I in ('dir /a-d /b "!MODEL_DIR!" 2^>nul ^| find /c /v ""') do set /a MODEL_FILE_COUNT=%%I
+  if !MODEL_FILE_COUNT! GTR 0 (
+    echo Found !MODEL_FILE_COUNT! existing file^(s^) in !MODEL_DIR!.
+    set /p SKIP_EXISTING_DOWNLOAD="Skip download and keep existing files? (Y/N) [Y]: "
+    if "!SKIP_EXISTING_DOWNLOAD!"=="" set SKIP_EXISTING_DOWNLOAD=Y
+    call :log "Skip existing model download choice: !SKIP_EXISTING_DOWNLOAD! (files found: !MODEL_FILE_COUNT!)"
+    if /I "!SKIP_EXISTING_DOWNLOAD!"=="Y" (
+      call :log "Skipping model download because files already exist."
+      goto :after_model_download
     )
   )
+)
 
-  echo Downloading !MODEL_REPO! to !MODEL_DIR!... 
-  call :log "Running: !HF_DL_CMD! download !MODEL_REPO! !INCLUDE_ARGS! --local-dir !MODEL_DIR!"
-  !HF_DL_CMD! download !MODEL_REPO! !INCLUDE_ARGS! --local-dir "!MODEL_DIR!" >> "%LOG_FILE%" 2>&1
-  if errorlevel 1 (
-    call :log "ERROR: Model download failed with !HF_DL_CMD!."
-    echo Model download failed. Check internet/HF token or choose offline mode.
-    if /I "!HF_DL_CMD!"=="huggingface-cli" (
-      echo Hint: install/update huggingface_hub and rerun so this script can use the newer ^'hf^' command.
-    )
-    exit /b 1
+echo Downloading !MODEL_REPO! to !MODEL_DIR!... 
+call :log "Running: !HF_DL_CMD! download !MODEL_REPO! !INCLUDE_ARGS! --local-dir !MODEL_DIR!"
+!HF_DL_CMD! download !MODEL_REPO! !INCLUDE_ARGS! --local-dir "!MODEL_DIR!" >> "%LOG_FILE%" 2>&1
+if errorlevel 1 (
+  call :log "ERROR: Model download failed with !HF_DL_CMD!."
+  echo Model download failed. Check internet/HF token or choose offline mode.
+  if /I "!HF_DL_CMD!"=="huggingface-cli" (
+    echo Hint: install/update huggingface_hub and rerun so this script can use the newer ^'hf^' command.
   )
+  exit /b 1
 )
 
 :after_model_download
