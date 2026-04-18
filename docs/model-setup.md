@@ -11,7 +11,7 @@ Example vLLM launch:
 python -m vllm.entrypoints.openai.api_server \
   --host 0.0.0.0 \
   --port 8001 \
-  --model Qwen/Qwen2.5-Coder-7B-Instruct \
+  --model unsloth/Qwen3.6-35B-A3B-Instruct \
   --dtype auto \
   --max-model-len 32768
 ```
@@ -21,7 +21,7 @@ Example GGUF launch (llama.cpp server):
 python -m llama_cpp.server \
   --host 0.0.0.0 \
   --port 8001 \
-  --model models/qwen3_6/your-model.Q4_K_M.gguf \
+  --model models/qwen3_6_35b_a3b/your-model.Q4_K_M.gguf \
   --api_key local-key \
   --chat_format chatml
 ```
@@ -40,7 +40,7 @@ python -m llama_cpp.server \
    - Display name: `Qwen Coder Local`
    - Backend: `vllm` or `llama_cpp`
    - Endpoint: `http://localhost:8001/v1`
-   - Model ID: `Qwen/Qwen2.5-Coder-7B-Instruct`
+   - Model ID: `unsloth/Qwen3.6-35B-A3B-Instruct` (or `unsloth/Qwen3.6-35B-A3B` for base)
    - API key: `local-key` (or configured token)
 3. Save as coding/general/cheap helper role as needed.
 

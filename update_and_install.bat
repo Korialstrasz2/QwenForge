@@ -87,30 +87,48 @@ echo.
 set /p DOWNLOAD_MODEL="Download Qwen 3.6 from Unsloth now? (Y/N): "
 call :log "Download model choice: !DOWNLOAD_MODEL!"
 if /I "!DOWNLOAD_MODEL!"=="Y" (
-  echo Choose quantization:
-  echo   1^) 4-bit (bnb)
-  echo   2^) 8-bit/base
-  echo   3^) GGUF Q4_K_M
-  set /p QUANT_CHOICE="Enter 1, 2, or 3: "
-  call :log "Quantization choice: !QUANT_CHOICE!"
+  echo Choose model selector:
+  echo   1^) Qwen3.6-35B-A3B (base)
+  echo   2^) Qwen3.6-35B-A3B-Instruct
+  echo   3^) Qwen3.6-35B-A3B-GGUF
+  echo   4^) Custom Hugging Face repo ID
+  set /p MODEL_CHOICE="Enter 1, 2, 3, or 4: "
+  call :log "Model selector choice: !MODEL_CHOICE!"
 
-  if "!QUANT_CHOICE!"=="1" (
-    set MODEL_REPO=unsloth/Qwen3-6B-Instruct-bnb-4bit
+  if "!MODEL_CHOICE!"=="1" (
+    set MODEL_REPO=unsloth/Qwen3.6-35B-A3B
     set INCLUDE_ARGS=
-  ) else if "!QUANT_CHOICE!"=="2" (
-    set MODEL_REPO=unsloth/Qwen3-6B-Instruct
+  ) else if "!MODEL_CHOICE!"=="2" (
+    set MODEL_REPO=unsloth/Qwen3.6-35B-A3B-Instruct
     set INCLUDE_ARGS=
-  ) else if "!QUANT_CHOICE!"=="3" (
-    set MODEL_REPO=unsloth/Qwen3-6B-Instruct-GGUF
-    set INCLUDE_ARGS=--include *Q4_K_M.gguf
+  ) else if "!MODEL_CHOICE!"=="3" (
+    set MODEL_REPO=unsloth/Qwen3.6-35B-A3B-GGUF
+    set /p GGUF_FILTER="GGUF file filter [*Q4_K_M.gguf]: "
+    if "!GGUF_FILTER!"=="" set "GGUF_FILTER=*Q4_K_M.gguf"
+    set "INCLUDE_ARGS=--include !GGUF_FILTER!"
+  ) else if "!MODEL_CHOICE!"=="4" (
+    set /p MODEL_REPO="Enter repo ID (example: unsloth/Qwen3.6-35B-A3B-GGUF): "
+    if "!MODEL_REPO!"=="" (
+      call :log "Empty custom repo id. Skipping model download."
+      echo Empty repo ID, skipping model download.
+      goto :done
+    )
+    set /p IS_GGUF="Is this a GGUF repo? (Y/N) [N]: "
+    if /I "!IS_GGUF!"=="Y" (
+      set /p GGUF_FILTER="GGUF file filter [*Q4_K_M.gguf]: "
+      if "!GGUF_FILTER!"=="" set "GGUF_FILTER=*Q4_K_M.gguf"
+      set "INCLUDE_ARGS=--include !GGUF_FILTER!"
+    ) else (
+      set INCLUDE_ARGS=
+    )
   ) else (
-    call :log "Invalid quantization selection: !QUANT_CHOICE!"
+    call :log "Invalid model selector: !MODEL_CHOICE!"
     echo Invalid selection, skipping model download.
     goto :done
   )
 
-  set /p MODEL_DIR="Local target folder for model files [models\qwen3_6]: "
-  if "!MODEL_DIR!"=="" set MODEL_DIR=models\qwen3_6
+  set /p MODEL_DIR="Local target folder for model files [models\qwen3_6_35b_a3b]: "
+  if "!MODEL_DIR!"=="" set MODEL_DIR=models\qwen3_6_35b_a3b
   call :log "Model target directory: !MODEL_DIR!"
 
   echo Downloading !MODEL_REPO! to !MODEL_DIR!... 

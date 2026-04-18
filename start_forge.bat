@@ -50,7 +50,7 @@ set /p ENGINE_CHOICE="Enter 1 or 2 [1]: "
 if "!ENGINE_CHOICE!"=="" set ENGINE_CHOICE=1
 call :log "Engine choice: !ENGINE_CHOICE!"
 
-set "DEFAULT_MODEL_ID=Qwen/Qwen2.5-Coder-7B-Instruct"
+set "DEFAULT_MODEL_ID=unsloth/Qwen3.6-35B-A3B-Instruct"
 set "VLLM_MODEL_ID=%VLLM_MODEL_ID%"
 if "!VLLM_MODEL_ID!"=="" set "VLLM_MODEL_ID=!DEFAULT_MODEL_ID!"
 call :log "VLLM model id: !VLLM_MODEL_ID!"
@@ -62,13 +62,19 @@ if "!GGUF_MODEL_FILE!"=="" (
     goto :have_gguf
   )
 )
+if "!GGUF_MODEL_FILE!"=="" (
+  for %%F in ("%~dp0models\qwen3_6_35b_a3b\*.gguf") do (
+    set "GGUF_MODEL_FILE=%%~fF"
+    goto :have_gguf
+  )
+)
 :have_gguf
 if not "!GGUF_MODEL_FILE!"=="" call :log "GGUF model file: !GGUF_MODEL_FILE!"
 
 if "!ENGINE_CHOICE!"=="2" (
   if "!GGUF_MODEL_FILE!"=="" (
     call :log "WARNING: No GGUF file found. Falling back to vLLM mode."
-    echo WARNING: No GGUF file found in models\qwen3_6\*.gguf and GGUF_MODEL_FILE not set.
+    echo WARNING: No GGUF file found in models\qwen3_6\*.gguf or models\qwen3_6_35b_a3b\*.gguf and GGUF_MODEL_FILE not set.
     echo Falling back to vLLM mode.
     set "ENGINE_CHOICE=1"
   )
