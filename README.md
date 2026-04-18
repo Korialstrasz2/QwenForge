@@ -36,7 +36,7 @@ Run `update_and_install.bat` from the repo root. It will:
 - Prompt to optionally download Qwen 3.6 quantized variants from Unsloth.
 - Prompt to toggle all-local/offline mode defaults in `.env`.
 
-Then run `start_forge.bat` to launch local services (backend + frontend; and dockerized postgres/redis when Docker is available).
+Then run `start_forge.bat` to launch local services (backend + frontend; and dockerized postgres/redis when Docker is available). The script now writes startup diagnostics to `start_forge.log` in the repo root.
 
 ## Local dev commands
 ```bash
