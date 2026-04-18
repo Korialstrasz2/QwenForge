@@ -8,8 +8,17 @@ cd /d "%~dp0"
 set "LOG_FILE=%~dp0log.txt"
 > "%LOG_FILE%" echo ==== update_and_install.bat run started %DATE% %TIME% ====
 
+set "SKIP_MODEL_DOWNLOAD=0"
+for %%A in (%*) do (
+  if /I "%%~A"=="--skip-model-download" set "SKIP_MODEL_DOWNLOAD=1"
+  if /I "%%~A"=="/skip-model-download" set "SKIP_MODEL_DOWNLOAD=1"
+)
+
 echo Logging detailed output to "%LOG_FILE%"
 call :log "Working directory: %CD%"
+if "%SKIP_MODEL_DOWNLOAD%"=="1" (
+  call :log "Model download disabled via CLI flag."
+)
 
 echo [1/6] Ensuring Python virtual environment exists...
 if not exist ".venv\Scripts\python.exe" (
@@ -90,9 +99,14 @@ if /I "!OFFLINE_CHOICE!"=="Y" (
 )
 
 echo.
-set /p DOWNLOAD_MODEL="Download Qwen 3.6 from Unsloth now? (Y/N): "
-call :log "Download model choice: !DOWNLOAD_MODEL!"
-if /I "!DOWNLOAD_MODEL!"=="Y" (
+if "%SKIP_MODEL_DOWNLOAD%"=="1" (
+  echo Skipping model download ^(--skip-model-download^).
+  call :log "Skipping model download because --skip-model-download was provided."
+) else (
+  set /p DOWNLOAD_MODEL="Download Qwen 3.6 from Unsloth now? (Y/N): "
+  call :log "Download model choice: !DOWNLOAD_MODEL!"
+)
+if "%SKIP_MODEL_DOWNLOAD%"=="0" if /I "!DOWNLOAD_MODEL!"=="Y" (
   echo Choose model selector:
   echo   1^) Qwen3.6-35B-A3B (base)
   echo   2^) Qwen3.6-35B-A3B-Instruct
