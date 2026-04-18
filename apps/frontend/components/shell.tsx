@@ -68,7 +68,7 @@ export function ForgeShell() {
               <form className="grid gap-2" onSubmit={async (e)=>{e.preventDefault(); const f=new FormData(e.currentTarget); await fetchJson("/api/models",{method:"POST",body:JSON.stringify({display_name:String(f.get("display_name")),backend:String(f.get("backend")),model_id:String(f.get("model_id")),endpoint:String(f.get("endpoint")),api_key:String(f.get("api_key")),quantization_note:String(f.get("quant"))})}); models.refetch();}}>
                 <input name="display_name" className="rounded-md bg-slate-900 p-2 text-sm" placeholder="Qwen Coder Local" required />
                 <input name="backend" className="rounded-md bg-slate-900 p-2 text-sm" defaultValue="vllm" />
-                <input name="model_id" className="rounded-md bg-slate-900 p-2 text-sm" defaultValue="Qwen/Qwen2.5-Coder-7B-Instruct" />
+                <input name="model_id" className="rounded-md bg-slate-900 p-2 text-sm" defaultValue="unsloth/Qwen3.6-35B-A3B-Instruct" />
                 <input name="endpoint" className="rounded-md bg-slate-900 p-2 text-sm" defaultValue="http://localhost:8001/v1" />
                 <input name="api_key" className="rounded-md bg-slate-900 p-2 text-sm" defaultValue="local-key" />
                 <input name="quant" className="rounded-md bg-slate-900 p-2 text-sm" placeholder="AWQ 4-bit" />
