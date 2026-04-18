@@ -30,14 +30,16 @@ def _build_adapter_or_400(backend: str):
 
 
 @router.get("/inference/health")
-async def inference_health(backend: str = "vllm"):
-    adapter = _build_adapter_or_400(backend)
+async def inference_health(backend: str | None = None):
+    settings = get_settings()
+    adapter = _build_adapter_or_400(backend or settings.default_inference_backend)
     return await adapter.health()
 
 
 @router.get("/inference/models")
-async def inference_models(backend: str = "vllm"):
-    adapter = _build_adapter_or_400(backend)
+async def inference_models(backend: str | None = None):
+    settings = get_settings()
+    adapter = _build_adapter_or_400(backend or settings.default_inference_backend)
     return {"data": await adapter.list_models()}
 
 

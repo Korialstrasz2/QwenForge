@@ -3,6 +3,8 @@
 ## Choosing the recommended backend
 Use **vLLM OpenAI-compatible server** as the default backend for Forge. It provides robust throughput, streaming, and model introspection APIs.
 
+Forge now also supports a **GGUF mode** via `llama_cpp` OpenAI-compatible server for lower-memory deployments.
+
 ## Starting the inference server
 Example vLLM launch:
 ```bash
@@ -14,11 +16,29 @@ python -m vllm.entrypoints.openai.api_server \
   --max-model-len 32768
 ```
 
+Example GGUF launch (llama.cpp server):
+```bash
+python -m llama_cpp.server \
+  --host 0.0.0.0 \
+  --port 8001 \
+  --model models/qwen3_6/your-model.Q4_K_M.gguf \
+  --api_key local-key \
+  --chat_format chatml
+```
+
+## Switching runtime mode at startup
+- Run `start_forge.bat`.
+- Choose startup mode:
+  - `1` = vLLM
+  - `2` = GGUF (`llama_cpp`)
+- The script starts an OpenAI-compatible inference server for the selected mode on `http://localhost:8001/v1`.
+- API/UI features stay the same because Forge talks to both modes through the same OpenAI-compatible interface.
+
 ## Adding the local model profile in the UI
 1. Open Forge Control Panel.
 2. Add model profile with:
    - Display name: `Qwen Coder Local`
-   - Backend: `vllm`
+   - Backend: `vllm` or `llama_cpp`
    - Endpoint: `http://localhost:8001/v1`
    - Model ID: `Qwen/Qwen2.5-Coder-7B-Instruct`
    - API key: `local-key` (or configured token)

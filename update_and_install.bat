@@ -43,8 +43,8 @@ python -m pip install -e .[dev] >> "%LOG_FILE%" 2>&1 || exit /b 1
 popd
 
 echo [4/6] Installing model/runtime helper dependencies...
-call :log "Running: python -m pip install huggingface_hub unsloth vllm==0.11.0"
-python -m pip install huggingface_hub unsloth vllm==0.11.0 >> "%LOG_FILE%" 2>&1 || exit /b 1
+call :log "Running: python -m pip install huggingface_hub unsloth vllm==0.11.0 llama-cpp-python[server]==0.3.16"
+python -m pip install huggingface_hub unsloth vllm==0.11.0 llama-cpp-python[server]==0.3.16 >> "%LOG_FILE%" 2>&1 || exit /b 1
 
 echo [5/6] Installing frontend dependencies...
 where npm >> "%LOG_FILE%" 2>&1
@@ -111,6 +111,19 @@ if /I "!DOWNLOAD_MODEL!"=="Y" (
     echo Model download failed. Check internet/HF token or choose offline mode.
     exit /b 1
   )
+)
+
+echo.
+set /p ENGINE_CHOICE="Default inference engine (1=vLLM, 2=GGUF/llama.cpp) [1]: "
+if "!ENGINE_CHOICE!"=="" set ENGINE_CHOICE=1
+call :log "Engine choice: !ENGINE_CHOICE!"
+
+if "!ENGINE_CHOICE!"=="2" (
+  call :log "Configuring .env for GGUF mode"
+  powershell -NoProfile -Command "(Get-Content .env) -replace '^DEFAULT_INFERENCE_BACKEND=.*','DEFAULT_INFERENCE_BACKEND=llama_cpp' -replace '^DEFAULT_INFERENCE_BASE_URL=.*','DEFAULT_INFERENCE_BASE_URL=http://localhost:8001/v1' -replace '^DEFAULT_INFERENCE_API_KEY=.*','DEFAULT_INFERENCE_API_KEY=local-key' | Set-Content .env" >> "%LOG_FILE%" 2>&1
+) else (
+  call :log "Configuring .env for vLLM mode"
+  powershell -NoProfile -Command "(Get-Content .env) -replace '^DEFAULT_INFERENCE_BACKEND=.*','DEFAULT_INFERENCE_BACKEND=vllm' -replace '^DEFAULT_INFERENCE_BASE_URL=.*','DEFAULT_INFERENCE_BASE_URL=http://localhost:8001/v1' -replace '^DEFAULT_INFERENCE_API_KEY=.*','DEFAULT_INFERENCE_API_KEY=local-key' | Set-Content .env" >> "%LOG_FILE%" 2>&1
 )
 
 :done
