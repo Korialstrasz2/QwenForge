@@ -9,8 +9,10 @@ def build_adapter(backend: str, endpoint: str | None = None, api_key: str | None
     resolved_api_key = api_key or settings.default_inference_api_key
     require_local_endpoint(resolved_endpoint, all_local_mode=settings.all_local_mode)
 
-    if backend == "vllm":
-        return OpenAICompatibleAdapter("vllm", resolved_endpoint, resolved_api_key)
+    openai_compatible_backends = {"vllm", "llama_cpp", "gguf"}
+    if backend in openai_compatible_backends:
+        normalized_backend = "llama_cpp" if backend == "gguf" else backend
+        return OpenAICompatibleAdapter(normalized_backend, resolved_endpoint, resolved_api_key)
 
     if backend == "oobabooga":
         if not settings.feature_oobabooga:

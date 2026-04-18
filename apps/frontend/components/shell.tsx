@@ -132,7 +132,7 @@ export function ForgeShell() {
                 <ControlLine label="Write mode" value="Preview diff before apply" />
                 <ControlLine label="Git policy" value="Branch-per-job" />
                 <ControlLine label="Concurrency" value="1 active / model role" />
-                <ControlLine label="Backend" value="vLLM default, oobabooga optional" />
+                <ControlLine label="Backend" value="vLLM default, llama.cpp GGUF optional" />
               </div>
               <div className="mt-4 rounded-lg border border-slate-700 p-3 text-xs text-slate-400">
                 First-run wizard: add model profile, test connectivity, and set default templates.
