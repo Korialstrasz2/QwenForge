@@ -56,6 +56,12 @@ if errorlevel 1 (
   set "HF_DL_CMD=hf"
 )
 
+REM Force UTF-8 for Python-based CLIs (hf/huggingface-cli) to avoid Windows codepage
+REM errors when unicode status symbols (e.g., ✓) are printed during downloads.
+set "PYTHONUTF8=1"
+set "PYTHONIOENCODING=utf-8"
+call :log "Configured UTF-8 console env for Python CLIs (PYTHONUTF8=1, PYTHONIOENCODING=utf-8)."
+
 echo [5/6] Installing frontend dependencies...
 where npm >> "%LOG_FILE%" 2>&1
 if errorlevel 1 (
@@ -131,6 +137,21 @@ if /I "!DOWNLOAD_MODEL!"=="Y" (
   if "!MODEL_DIR!"=="" set MODEL_DIR=models\qwen3_6_35b_a3b
   call :log "Model target directory: !MODEL_DIR!"
 
+  if exist "!MODEL_DIR!" (
+    set /a MODEL_FILE_COUNT=0
+    for /f %%I in ('dir /a-d /b "!MODEL_DIR!" 2^>nul ^| find /c /v ""') do set /a MODEL_FILE_COUNT=%%I
+    if !MODEL_FILE_COUNT! GTR 0 (
+      echo Found !MODEL_FILE_COUNT! existing file^(s^) in !MODEL_DIR!.
+      set /p SKIP_EXISTING_DOWNLOAD="Skip download and keep existing files? (Y/N) [Y]: "
+      if "!SKIP_EXISTING_DOWNLOAD!"=="" set SKIP_EXISTING_DOWNLOAD=Y
+      call :log "Skip existing model download choice: !SKIP_EXISTING_DOWNLOAD! (files found: !MODEL_FILE_COUNT!)"
+      if /I "!SKIP_EXISTING_DOWNLOAD!"=="Y" (
+        call :log "Skipping model download because files already exist."
+        goto :after_model_download
+      )
+    )
+  )
+
   echo Downloading !MODEL_REPO! to !MODEL_DIR!... 
   call :log "Running: !HF_DL_CMD! download !MODEL_REPO! !INCLUDE_ARGS! --local-dir !MODEL_DIR!"
   !HF_DL_CMD! download !MODEL_REPO! !INCLUDE_ARGS! --local-dir "!MODEL_DIR!" >> "%LOG_FILE%" 2>&1
@@ -144,6 +165,7 @@ if /I "!DOWNLOAD_MODEL!"=="Y" (
   )
 )
 
+:after_model_download
 echo.
 set /p ENGINE_CHOICE="Default inference engine (1=vLLM, 2=GGUF/llama.cpp) [1]: "
 if "!ENGINE_CHOICE!"=="" set ENGINE_CHOICE=1
