@@ -46,6 +46,16 @@ echo [4/6] Installing model/runtime helper dependencies...
 call :log "Running: python -m pip install huggingface_hub unsloth vllm==0.11.0 llama-cpp-python[server]==0.3.16"
 python -m pip install huggingface_hub unsloth vllm==0.11.0 llama-cpp-python[server]==0.3.16 >> "%LOG_FILE%" 2>&1 || exit /b 1
 
+set "HF_DL_CMD="
+where hf >> "%LOG_FILE%" 2>&1
+if errorlevel 1 (
+  call :log "'hf' command not found. Model download step will use legacy fallback."
+  set "HF_DL_CMD=huggingface-cli"
+) else (
+  call :log "Using 'hf' CLI for model downloads."
+  set "HF_DL_CMD=hf"
+)
+
 echo [5/6] Installing frontend dependencies...
 where npm >> "%LOG_FILE%" 2>&1
 if errorlevel 1 (
@@ -104,11 +114,14 @@ if /I "!DOWNLOAD_MODEL!"=="Y" (
   call :log "Model target directory: !MODEL_DIR!"
 
   echo Downloading !MODEL_REPO! to !MODEL_DIR!... 
-  call :log "Running: huggingface-cli download !MODEL_REPO! !INCLUDE_ARGS! --local-dir !MODEL_DIR!"
-  huggingface-cli download !MODEL_REPO! !INCLUDE_ARGS! --local-dir "!MODEL_DIR!" >> "%LOG_FILE%" 2>&1
+  call :log "Running: !HF_DL_CMD! download !MODEL_REPO! !INCLUDE_ARGS! --local-dir !MODEL_DIR!"
+  !HF_DL_CMD! download !MODEL_REPO! !INCLUDE_ARGS! --local-dir "!MODEL_DIR!" >> "%LOG_FILE%" 2>&1
   if errorlevel 1 (
-    call :log "ERROR: Model download failed."
+    call :log "ERROR: Model download failed with !HF_DL_CMD!."
     echo Model download failed. Check internet/HF token or choose offline mode.
+    if /I "!HF_DL_CMD!"=="huggingface-cli" (
+      echo Hint: install/update huggingface_hub and rerun so this script can use the newer ^'hf^' command.
+    )
     exit /b 1
   )
 )
